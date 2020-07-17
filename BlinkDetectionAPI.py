@@ -24,7 +24,7 @@ app.config["DEBUG"] = True
 
 
 
-BLINK_RATIO_THRESHOLD = 5.7
+BLINK_RATIO_THRESHOLD = 4.5
 
 #-----Step 5: Getting to know blink ratio
 
@@ -119,7 +119,7 @@ def api_all():
         #                        2,(255,255,255),2,cv2.LINE_AA)
                     return jsonify(
                             errorcode=1,
-                            errormessage='Detected Eye closed, please retry capture image again'
+                            errormessage='Closed Eye Detected, please capture again.'
                             )
                 else:
                     return jsonify(
@@ -129,7 +129,7 @@ def api_all():
                     
             return jsonify(
                     errorcode=1,
-                    errormessage='Face is not Detected'
+                    errormessage='Face is not Detected, please capture again.'
                     )
             
         else:
