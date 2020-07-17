@@ -72,70 +72,76 @@ import numpy as np
 @app.route('/api/BlinkDetection', methods=['POST'])
 def api_all():
 
-    if request.method == 'POST':
-        if 'file' not in request.files:
-            print('No file part')
-            return ''
-    
-        file = request.files['file'].read()
-    
-        print(type(file))
-        #capturing frame
-        frame = file
+    try:
+        if request.method == 'POST':
+            if 'file' not in request.files:
+                print('No file part')
+                return ''
         
-#        # convert string of image data to uint8
-#        nparr = np.fromstring(file, np.uint8)
-#        print(nparr)
-#        # decode image
-#        img = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
-
+            file = request.files['file'].read()
+        
+            print(type(file))
+            #capturing frame
+            frame = file
             
-        # CV2
-        nparr = np.fromstring(frame, np.uint8)
-        img_np = cv2.imdecode(nparr, cv2.IMREAD_COLOR ) # cv2.IMREAD_COLOR in OpenCV 3.1
+    #        # convert string of image data to uint8
+    #        nparr = np.fromstring(file, np.uint8)
+    #        print(nparr)
+    #        # decode image
+    #        img = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
     
-        #-----Step 2: converting image to grayscale-----
-        frame = cv2.cvtColor(img_np, cv2.COLOR_BGR2GRAY)
-    
-        #-----Step 3: Face detection with dlib-----
-        #detecting faces in the frame 
-        faces,_,_ = detector.run(image = frame, upsample_num_times = 0, 
-                           adjust_threshold = 0.0)
-    
-        #-----Step 4: Detecting Eyes using landmarks in dlib-----
-        for face in faces:
+                
+            # CV2
+            nparr = np.fromstring(frame, np.uint8)
+            img_np = cv2.imdecode(nparr, cv2.IMREAD_COLOR ) # cv2.IMREAD_COLOR in OpenCV 3.1
+        
+            #-----Step 2: converting image to grayscale-----
+            frame = cv2.cvtColor(img_np, cv2.COLOR_BGR2GRAY)
+        
+            #-----Step 3: Face detection with dlib-----
+            #detecting faces in the frame 
+            faces,_,_ = detector.run(image = frame, upsample_num_times = 0, 
+                               adjust_threshold = 0.0)
+        
+            #-----Step 4: Detecting Eyes using landmarks in dlib-----
+            for face in faces:
+                
+                landmarks = predictor(frame, face)
+        
+                #-----Step 5: Calculating blink ratio for one eye-----
+                left_eye_ratio  = get_blink_ratio(left_eye_landmarks, landmarks)
+                right_eye_ratio = get_blink_ratio(right_eye_landmarks, landmarks)
+                blink_ratio     = (left_eye_ratio + right_eye_ratio) / 2
+        
+                if blink_ratio > BLINK_RATIO_THRESHOLD:
+        #            #Blink detected! Do Something!
+        #            cv2.putText(frame,"BLINKING"  ,(10,50), cv2.FONT_HERSHEY_SIMPLEX,
+        #                        2,(255,255,255),2,cv2.LINE_AA)
+                    return jsonify(
+                            errorcode=1,
+                            errormessage='Detected Eye closed, please retry capture image again'
+                            )
+                else:
+                    return jsonify(
+                            errorcode=0,
+                            errormessage=''
+                            )
+                    
+            return jsonify(
+                    errorcode=1,
+                    errormessage='Face is not Detected'
+                    )
             
-            landmarks = predictor(frame, face)
-    
-            #-----Step 5: Calculating blink ratio for one eye-----
-            left_eye_ratio  = get_blink_ratio(left_eye_landmarks, landmarks)
-            right_eye_ratio = get_blink_ratio(right_eye_landmarks, landmarks)
-            blink_ratio     = (left_eye_ratio + right_eye_ratio) / 2
-    
-            if blink_ratio > BLINK_RATIO_THRESHOLD:
-    #            #Blink detected! Do Something!
-    #            cv2.putText(frame,"BLINKING"  ,(10,50), cv2.FONT_HERSHEY_SIMPLEX,
-    #                        2,(255,255,255),2,cv2.LINE_AA)
-                return jsonify(
-                        errorcode=1,
-                        errormessage='Detected Eye closed, please retry capture image again'
-                        )
-            else:
-                return jsonify(
-                        errorcode=0,
-                        errormessage=''
-                        )
-    else:
+        else:
+            return jsonify(
+                errorcode=1,
+                errormessage='Image Not Found'
+            )
+            
+    except Exception as ex:
         return jsonify(
             errorcode=1,
-            errordesc='Image Not Found',
-            personresponse='',
-            applicationnumber= '',
-            facedetectresponse=''
+            errormessage='Exception - ' + str(ex)
         )
-    
-    
-
-
 
 app.run()
