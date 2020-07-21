@@ -1,9 +1,3 @@
-# -*- coding: utf-8 -*-
-"""
-Created on Wed Jul 15 15:39:03 2020
-
-@author: 1121113
-"""
 
 # -*- coding: utf-8 -*-
 """
@@ -42,7 +36,7 @@ left_eye_landmarks  = [36, 37, 38, 39, 40, 41]
 right_eye_landmarks = [42, 43, 44, 45, 46, 47]
 
 
-model = load_model('models/2018_12_17_22_58_35.h5')
+model = load_model('2018_12_17_22_58_35.h5')
 model.summary()
 
 
@@ -201,7 +195,7 @@ def api_all():
                     print(state_l)
                     print(state_r)
                     
-                    if ( float(state_l.split()[1])   >= 0.7 and float(state_r.split()[1]) >= 0.7):
+                    if ( float(state_l.split()[1])   >= 0.6 and float(state_r.split()[1]) >= 0.6):
                         
                         return jsonify(
                                 errorcode=0,
@@ -231,4 +225,4 @@ def api_all():
             errormessage='Exception - ' + str(ex)
         )
 
-app.run()
+app.run(host='0.0.0.0',port='5000')
