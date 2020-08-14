@@ -3,7 +3,7 @@
 """
 Created on Wed Jul 15 14:45:38 2020
 
-@author: 1121113
+@author: Pramod Gupta
 """
 
 #-----Step 1: Use VideoCapture in OpenCV-----
